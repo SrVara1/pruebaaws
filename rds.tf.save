@@ -1,0 +1,90 @@
+
+
+
+
+
+
+
+  GNU nano 7.2                                                 rds.tf                                                          # Proveedor principal para EC2 en us-east-1
+provider "aws" {
+  region = "us-east-1"
+}
+
+# Proveedor con alias para RDS en eu-south-2
+provider "aws" {
+  alias  = "rds"
+  region = "eu-south-2"
+}
+
+# Grupo de seguridad para RDS
+resource "aws_security_group" "rds_sg" {
+  provider    = aws.rds  # Usamos el proveedor de eu-south-2
+  name        = "rds-security-group"
+  description = "Permitir acceso a RDS"
+
+  ingress {
+    from_port   = 3306  # Puerto de MySQL (ajusta según el motor de DB)
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # ⚠️ En producción, restringe este acceso
+  }
+
+  egress {
+    from_port   = 0# Proveedor principal para EC2 en us-east-1
+provider "aws" {
+  region = "us-east-1"
+}
+
+# Proveedor con alias para RDS en eu-south-2
+provider "aws" {
+  alias  = "rds"
+  region = "eu-south-2"
+}
+
+# Grupo de seguridad para RDS
+resource "aws_security_group" "rds_sg" {
+  provider    = aws.rds  # Usamos el proveedor de eu-south-2
+  name        = "rds-security-group"
+  description = "Permitir acceso a RDS"
+
+  ingress {
+    from_port   = 3306  # Puerto de MySQL (ajusta según el motor de DB)
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # ⚠️ En producción, restringe este acceso
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Subnet group para RDS en eu-south-2
+resource "aws_db_subnet_group" "rds_subnet" {
+  provider   = aws.rds  # Se despliega en eu-south-2
+  name       = "rds-subnet-group"
+  subnet_ids = ["subnet-xxxxxxxx", "subnet-yyyyyyyy"]  # Sustituye con tus subnets
+
+  tags = {
+    Name = "RDS Subnet Group"
+  }
+}
+
+# Instancia RDS en eu-south-2
+resource "aws_db_instance" "mi_rds" {
+  provider          = aws.rds  # Se despliega en la región eu-south-2
+  identifier        = "mi-base-de-datos"
+  engine           = "mysql"       # Cambia si usas PostgreSQL, MariaDB, etc.
+  instance_class   = "db.t3.micro" # Instancia Free Tier
+  allocated_storage = 20           # Tamaño mínimo de RDS
+  username         = "admin"
+  password         = "MiClaveSegura123!"
+  publicly_accessible = true       # ⚠️ En producción, mejor mantenerlo en false
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  db_subnet_group_name  = aws_db_subnet_group.rds_subnet.name
+  skip_final_snapshot   = true
+}
+
