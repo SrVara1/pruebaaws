@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "robbucket11"
+  bucket = "mi_bucket"
 
   tags = {
     Name        = "mi_bucket"
